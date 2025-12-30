@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Mini Shopping Website</title>
+<style>
+    body { font-family: Arial, sans-serif; margin:0; padding:0; background:#111; color:#f5d76e;}
+    header { text-align:center; padding:20px; border-bottom:2px solid #f5d76e;}
+    h1 { color:#f5d76e; }
+    .container { max-width:900px; margin:20px auto; padding:20px; background:#1a1a1a; border-radius:10px; border:2px solid #f5d76e;}
+    input, button { padding:10px; margin:5px 0; border-radius:5px; border:none; }
+    input { width:100%; }
+    button { cursor:pointer; background:#f5d76e; color:#111; font-weight:bold; }
+    button:hover { background:#e6c84e; }
+
+    .hidden { display:none; }
+    .products { display:flex; flex-wrap:wrap; gap:20px; justify-content:center; }
+    .product-card { background:#1a1a1a; padding:15px; border-radius:10px; width:200px; text-align:center; border:2px solid #f5d76e;}
+    .product-card img { width:100%; height:150px; object-fit:cover; border-radius:5px; }
+    .cart-list { list-style:none; padding-left:0; }
+    .cart-list li { margin-bottom:5px; }
+
+    /* Modal for product details */
+    .modal { display:none; position:fixed; z-index:999; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.8); justify-content:center; align-items:center; }
+    .modal-content { background:#1a1a1a; padding:20px; border-radius:10px; width:300px; text-align:center; border:2px solid #f5d76e; }
+    .close { float:right; cursor:pointer; color:#f5d76e; font-weight:bold; font-size:20px; }
+</style>
+</head>
+<body>
+
+<header><h1>Mini Luxury Shop</h1></header>
+
+<!-- LOGIN PAGE -->
+<div class="container" id="loginPage">
+    <h2>Login</h2>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+</div>
+
+<!-- SHOP PAGE -->
+<div class="container hidden" id="shopPage">
+    <h2>Products</h2>
+    <div class="products">
+        <div class="product-card" onclick="showDetails('Luxury Watch','$499','https://tse4.mm.bing.net/th/id/OIP.w1wbVklg7HkadqH1m_QmTAAAAA?rs=1&pid=ImgDetMain&o=7&rm=3')">
+            <img src="https://tse4.mm.bing.net/th/id/OIP.w1wbVklg7HkadqH1m_QmTAAAAA?rs=1&pid=ImgDetMain&o=7&rm=3">
+            <h3>Luxury Watch</h3>
+            <p>$499</p>
+            <button onclick="addToCart(event,'Luxury Watch','$499')">Add to Cart</button>
+        </div>
+        <div class="product-card" onclick="showDetails('Designer Handbag','$699','https://myluxurybargain.com/wp-content/uploads/2024/10/Designer-Bags-That-Never-Go-Out-of-Style.jpg')">
+            <img src="https://myluxurybargain.com/wp-content/uploads/2024/10/Designer-Bags-That-Never-Go-Out-of-Style.jpg">
+            <h3>Designer Handbag</h3>
+            <p>$699</p>
+            <button onclick="addToCart(event,'Designer Handbag','$699')">Add to Cart</button>
+        </div>
+        <div class="product-card" onclick="showDetails('Gold Necklace','$299','https://d25g9z9s77rn4i.cloudfront.net/uploads/product/286/1659169825_184c8850aa0aee753be5.jpg')">
+            <img src="https://d25g9z9s77rn4i.cloudfront.net/uploads/product/286/1659169825_184c8850aa0aee753be5.jpg">
+            <h3>Gold Necklace</h3>
+            <p>$299</p>
+            <button onclick="addToCart(event,'Gold Necklace','$299')">Add to Cart</button>
+        </div>
+    </div>
+    <button onclick="goToCart()">Go to Cart</button>
+</div>
+
+<!-- CART PAGE -->
+<div class="container hidden" id="cartPage">
+    <h2>Your Cart</h2>
+    <ul class="cart-list" id="cartItems"></ul>
+    <strong>Total: <span id="cartTotal">$0</span></strong>
+    <button onclick="goToPayment()">Proceed to Payment</button>
+    <button onclick="backToShop()">Back to Shop</button>
+</div>
+
+<!-- PAYMENT PAGE -->
+<div class="container hidden" id="paymentPage">
+    <h2>Payment Details</h2>
+    <input type="text" id="cardName" placeholder="Cardholder Name">
+    <input type="text" id="cardNumber" placeholder="Card Number">
+    <input type="text" id="expiry" placeholder="Expiry MM/YY">
+    <input type="text" id="cvv" placeholder="CVV">
+    <button onclick="confirmOrder()">Pay Now</button>
+</div>
+
+<!-- ORDER CONFIRMATION PAGE -->
+<div class="container hidden" id="confirmationPage">
+    <h2>Order Confirmed!</h2>
+    <p>Thank you for shopping with us.</p>
+    <p>Your order has been placed successfully.</p>
+    <button onclick="backToShop()">Shop More</button>
+</div>
+
+<!-- PRODUCT DETAILS MODAL -->
+<div class="modal" id="productModal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <img id="modalImg" src="">
+        <h3 id="modalTitle"></h3>
+        <p id="modalPrice"></p>
+    </div>
+</div>
+
+<script>
+    // Simple Login
+    function login() {
+        let user = document.getElementById('username').value;
+        let pass = document.getElementById('password').value;
+        if(user && pass){
+            document.getElementById('loginPage').classList.add('hidden');
+            document.getElementById('shopPage').classList.remove('hidden');
+        } else {
+            alert('Enter username and password');
+        }
+    }
+
+    // Cart
+    let cart = [];
+    let total = 0;
+
+    function addToCart(e, name, price){
+        e.stopPropagation();
+        cart.push({name, price});
+        alert(name + " added to cart");
+    }
+
+    function goToCart(){
+        document.getElementById('shopPage').classList.add('hidden');
+        document.getElementById('cartPage').classList.remove('hidden');
+        updateCart();
+    }
+
+    function backToShop(){
+        document.getElementById('cartPage').classList.add('hidden');
+        document.getElementById('confirmationPage').classList.add('hidden');
+        document.getElementById('shopPage').classList.remove('hidden');
+    }
+
+    function updateCart(){
+        const cartItems = document.getElementById('cartItems');
+        cartItems.innerHTML = '';
+        total = 0;
+        cart.forEach(item => {
+            let li = document.createElement('li');
+            li.textContent = `${item.name} - ${item.price}`;
+            cartItems.appendChild(li);
+            total += parseFloat(item.price.replace('$',''));
+        });
+        document.getElementById('cartTotal').textContent = `$${total}`;
+    }
+
+    function goToPayment(){
+        document.getElementById('cartPage').classList.add('hidden');
+        document.getElementById('paymentPage').classList.remove('hidden');
+    }
+
+    function confirmOrder(){
+        let name = document.getElementById('cardName').value;
+        let number = document.getElementById('cardNumber').value;
+        let expiry = document.getElementById('expiry').value;
+        let cvv = document.getElementById('cvv').value;
+        if(name && number && expiry && cvv){
+            document.getElementById('paymentPage').classList.add('hidden');
+            document.getElementById('confirmationPage').classList.remove('hidden');
+            cart = []; // empty cart
+        } else {
+            alert('Enter payment details');
+        }
+    }
+
+    // Product modal
+    function showDetails(name, price, img){
+        const modal = document.getElementById('productModal');
+        document.getElementById('modalTitle').textContent = name;
+        document.getElementById('modalPrice').textContent = price;
+        document.getElementById('modalImg').src = img;
+        modal.style.display = 'flex';
+    }
+    function closeModal(){ document.getElementById('productModal').style.display = 'none'; }
+    window.onclick = function(event){
+        const modal = document.getElementById('productModal');
+        if(event.target==modal) modal.style.display='none';
+    }
+</script>
+
+</body>
+</html>
